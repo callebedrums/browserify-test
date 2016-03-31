@@ -9,8 +9,9 @@ module.exports = function (grunt) {
             server: {
                 options: {
                     port: 7000,
+                    hostname: 'localhost',
                     base: ['public', 'node_modules'],
-                    keepalive: true,
+                    livereload: true,
                     open: true,
                     middleware: function (connect, options, middleware) {
                         middleware.unshift(modRewrite(['^[^\\.]*$ /index.html [L]']));
@@ -20,18 +21,27 @@ module.exports = function (grunt) {
             }
         },
         browserify: {
-            options: {
-                debug: true
-            },
             dev: {
-                src: ['public/js/index.js'],
+                options: {
+                    browserifyOptions: {
+                        debug: true
+                    }
+                },
+                src: 'public/js/index.js',
+                dest: 'public/bundle.js'
+            },
+            prod: {
+                src: 'public/js/index.js',
                 dest: 'public/bundle.js'
             }
         },
         watch: {
             browserify: {
+                options: { // Live reload is now specific to this task
+                    livereload: true
+                },
                 files: ['public/js/**/*.js'],
-                tasks: ['browserify:dev', 'uglify:dev']   
+                tasks: ['browserify:dev']
             }
         },
         concurrent: {
@@ -45,9 +55,11 @@ module.exports = function (grunt) {
                 sourceMap: true
             },
             dev: {
-                files: {
-                    'public/bundle.min.js': ['public/bundle.js']
-                }
+                files: { 'public/bundle.min.js': ['public/bundle.js'] }
+            },
+            prod: {
+                options: { sourceMap: false },
+                files: { 'public/bundle.min.js': ['public/bundle.js'] }
             }
         }
     };
@@ -60,5 +72,5 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-concurrent');
     grunt.loadNpmTasks('grunt-contrib-uglify');
 
-    grunt.registerTask('serve', ['browserify:dev', 'uglify:dev', 'concurrent:serve']);
+    grunt.registerTask('serve', ['browserify:dev', 'connect:server', 'watch']);
 };
