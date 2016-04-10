@@ -17,7 +17,7 @@ gulp.task('browserify', function () {
         .pipe(gulp.dest('public'))
 });
 
-gulp.task('serve', function () {
+gulp.task('serve', ['browserify'], function () {
     var server = gls.static(['public', 'node_modules'], 3000);
     server.start();
 
